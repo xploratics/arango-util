@@ -1,0 +1,3 @@
+describe('arango-util', function () {
+
+});

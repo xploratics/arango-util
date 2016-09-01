@@ -1,0 +1,31 @@
+{
+  "name": "arango-util",
+  "version": "0.1.0",
+  "description": "Utilities and helper functions for arangodb",
+  "main": "index.js",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xploratics/arango-util.git"
+  },
+  "keywords": [
+    "arango",
+    "arangodb",
+    "utilities",
+    "helpers"
+  ],
+  "author": "Dany Laporte",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xploratics/arango-util/issues"
+  },
+  "homepage": "https://github.com/xploratics/arango-util#readme",
+  "dependencies": {
+    "arangojs": "^5.0.3"
+  },
+  "devDependencies": {
+    "jasmine": "^2.5.0"
+  }
+}
