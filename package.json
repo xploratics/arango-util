@@ -4,7 +4,7 @@
   "description": "Utilities and helper functions for arangodb",
   "main": "index.js",
   "scripts": {
-    "test": "jasmine"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -23,9 +23,11 @@
   },
   "homepage": "https://github.com/xploratics/arango-util#readme",
   "dependencies": {
-    "arangojs": "^5.0.3"
+    "debug": "^2.2.0"
   },
   "devDependencies": {
-    "jasmine": "^2.5.0"
+    "arangojs": "^5.0.3",
+    "chai": "^3.5.0",
+    "mocha": "^3.0.2"
   }
 }
