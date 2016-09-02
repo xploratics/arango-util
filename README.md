@@ -30,7 +30,9 @@ A promise containing true if the collection exists, otherwise false.
 var server = require('arangojs')({ url: 'root@127.0.0.1:8529' });
 var util = require('arango-util');
 
-util.collectionExists({ server, name: 'db' })
+server.useDatabase('db');
+
+util.collectionExists({ server, name: 'myCollection' })
     .then(function (exists) {
         console.log('Collection exists?: ', exists);
     });
@@ -55,7 +57,9 @@ A promise containing true if the collection has been created, otherwise false.
 var server = require('arangojs')({ url: 'root@127.0.0.1:8529' });
 var util = require('arango-util');
 
-util.ensureCollectionExists({ server, name: 'db' })
+server.useDatabase('db');
+
+util.ensureCollectionExists({ server, name: 'myCollection' })
     .then(function (created) {
         console.log('Does the collection have been created?: ', created);
     });
