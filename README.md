@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/xploratics/arango-util.svg)](https://travis-ci.org/xploratics/arango-util)
+[![dependencies Status](https://david-dm.org/xploratics/arango-util/status.svg)](https://david-dm.org/xploratics/arango-util)
+[![devDependencies Status](https://david-dm.org/xploratics/arango-util/dev-status.svg)](https://david-dm.org/xploratics/arango-util?type=dev)
 
 # arango-util
 Utilities and helper functions for arangodb.
