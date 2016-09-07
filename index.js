@@ -1,27 +1,35 @@
+var assert = require('assert');
 var debug = require('debug')('arango-util');
+var Promise = require('bluebird');
 
 exports.collectionExists = function (options) {
-    debug(`checking if collection '${options.name}' exists`);
+    var { name, server } = options || 0;
 
-    return options
-        .server
+    assert.ok(name, 'name of collection should be defined.');
+    assert.ok(server, 'server should be an arangodb database');
+    debug(`checking if collection '${name}' exists`);
+
+    return server
         .collections()
-        .then(collections => collections.some(c => c.name === options.name))
+        .then(collections => collections.some(c => c.name === name))
         .then(function (exists) {
-            debug(`collection '${options.name}'${exists ? '' : ' does not'} exists`);
+            debug(`collection '${name}'${exists ? '' : ' does not'} exists`);
             return exists;
         });
 };
 
 exports.databaseExists = function (options) {
-    debug(`checking if database '${options.name}' exists`);
+    var { name, server } = options || 0;
 
-    return options
-        .server
+    assert.ok(name, 'name of database should be defined.');
+    assert.ok(server, 'server should be an arangodb database');
+    debug(`checking if database '${name}' exists`);
+
+    return server
         .listDatabases()
-        .then(list => list.indexOf(options.name) > -1)
+        .then(list => list.indexOf(name) > -1)
         .then(function (exists) {
-            debug(`database '${options.name}'${exists ? '' : ' does not'} exists`);
+            debug(`database '${name}'${exists ? '' : ' does not'} exists`);
             return exists;
         });
 };
@@ -63,17 +71,28 @@ exports.ensureDatabaseExists = options => exports
         return v;
     });
 
-exports.getDatabaseVersion = options => exports
-    .ensureCollectionExists({ server: options.server, name: 'versions' })
-    .then(_ => options
-        .server
-        .transaction({ write: 'versions' }, String(function () {
-            var versions = require('org/arangodb').db.versions;
-            var v = versions.documents(['master']).documents[0];
+exports.getByKey = function (options) {
+    var { collection, key, server } = options || 0;
 
-            if (!v)
-                versions.insert({ _key: 'master', version: 0 });
+    if (typeof collection === 'string') {
+        assert.ok(server, 'server should be specified when using a collection');
+        collection = server.collection(collection);
+    } else {
+        assert.ok(collection, 'collection should be specified');
+    }
 
-            return v && v.version || 0;
-        }))
-    );
+    debug(`fetching document '${key}' from '${collection.name}'`);
+
+    return collection.document(key).then(function (e) {
+        debug(`found document ${key}`);
+        return e;
+    }, function (err) {
+        if (err.errorNum === 1202) {
+            debug(`document '${key}' not found.`);
+            return null;
+        } else
+            debug(`error fetching document '${key}'\n${err.toString()}`);
+        
+        return Promise.reject(err);
+    });
+};

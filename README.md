@@ -67,7 +67,38 @@ util.ensureCollectionExists({ server, name: 'myCollection' })
     });
 ```
 
+### getByKey
+Gets a document by key in a specified collection.
+If the document is found, it is returned otherwise, null.
 
+#### options
+- collection: Can be either a string or an arangojs collection object. Note: when a string is used, you need to also specify a server object.
+- key: name of the collection
+- server: arangojs database object. Note: when used, you need to specify a colletion name argument.
+
+#### returns
+A promise containing the document or null if the document is not found.
+
+#### example
+
+```js
+var server = require('arangojs')({ url: 'root@127.0.0.1:8529' });
+var util = require('arango-util');
+
+// using the server and collection name
+util.getByKey({ server, collection: 'users', key: 'user1' })
+    .then(function (user) {
+        // if user is found or null.
+    });
+
+var collection = server.collection('users');
+
+// using only the collection
+util.getByKey({ collection, key: 'user1' })
+    .then(function (user) {
+        // if user is found or null.
+    });
+```
 
 ## Database functions
 
