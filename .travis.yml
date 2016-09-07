@@ -14,3 +14,6 @@ services:
 
 script:
   - ARANGO_HOST=127.0.0.1 npm test
+
+notifications:
+  email: false
