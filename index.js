@@ -3,7 +3,8 @@ var debug = require('debug')('arango-util');
 var Promise = require('bluebird');
 
 exports.collectionExists = function (options) {
-    var { name, server } = options || 0;
+    var name = options && options.name;
+    var server = options && options.server;
 
     assert.ok(name, 'name of collection should be defined.');
     assert.ok(server, 'server should be an arangodb database');
@@ -19,7 +20,8 @@ exports.collectionExists = function (options) {
 };
 
 exports.databaseExists = function (options) {
-    var { name, server } = options || 0;
+    var name = options && options.name;
+    var server = options && options.server;
 
     assert.ok(name, 'name of database should be defined.');
     assert.ok(server, 'server should be an arangodb database');
@@ -72,7 +74,9 @@ exports.ensureDatabaseExists = options => exports
     });
 
 exports.getByKey = function (options) {
-    var { collection, key, server } = options || 0;
+    var collection = options && options.collection;
+    var key = options && options.key;
+    var server = options && options.server;
 
     if (typeof collection === 'string') {
         assert.ok(server, 'server should be specified when using a collection');
