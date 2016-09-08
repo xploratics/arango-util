@@ -74,29 +74,67 @@ exports.ensureDatabaseExists = options => exports
     });
 
 exports.getByKey = function (options) {
-    var collection = options && options.collection;
-    var key = options && options.key;
-    var server = options && options.server;
+    if (!options) options = {};
+    
+    var collection = options.collection;
+    var key = options.key;
+    var server = options.server;
 
     if (typeof collection === 'string') {
         assert.ok(server, 'server should be specified when using a collection');
         collection = server.collection(collection);
-    } else {
+    } else
         assert.ok(collection, 'collection should be specified');
-    }
 
     debug(`fetching document '${key}' from '${collection.name}'`);
 
-    return collection.document(key).then(function (e) {
+    return collection.document(key).then(documentFound, handleError);
+
+    function documentFound(e) {
         debug(`found document ${key}`);
         return e;
-    }, function (err) {
-        if (err.errorNum === 1202) {
+    }
+
+    function handleError(e) {
+        if (e.errorNum === 1202) {
             debug(`document '${key}' not found.`);
             return null;
         } else
-            debug(`error fetching document '${key}'\n${err.toString()}`);
+            debug(`error fetching document '${key}' from '${collection.name}'\n${e.toString()}`);
         
-        return Promise.reject(err);
-    });
+        return Promise.reject(e);
+    }
+};
+
+exports.removeByKey = function (options) {
+    if (!options) options = {};
+    
+    var collection = options.collection;
+    var key = options.key;
+    var server = options.server;
+
+    if (typeof collection === 'string') {
+        assert.ok(server, 'server should be specified when using a collection');
+        collection = server.collection(collection);
+    } else
+        assert.ok(collection, 'collection should be specified');
+
+    debug(`removing document '${key}' from '${collection.name}'`);
+
+    return collection.remove(key).then(documentRemoved, handleError);
+
+    function documentRemoved(e) {
+        debug(`document ${key} removed`);
+        return true;
+    }
+
+    function handleError(e) {
+        if (e.errorNum === 1202) {
+            debug(`document '${key}' not found.`);
+            return false;
+        } else
+            debug(`error removing docment '${key}' from '${collection.name}'\n${e.toString()}`);
+        
+        return Promise.reject(e);
+    }
 };
