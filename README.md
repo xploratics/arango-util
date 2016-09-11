@@ -18,10 +18,9 @@ npm install arango-util
 ### collectionExists
 Verify if a collection exists.
 
-#### options
+#### arguments
 
-- server: arangojs database object
-- name: name of the collection
+- collection: arangojs collection object
 
 #### returns
 A promise containing true if the collection exists, otherwise false.
@@ -33,8 +32,9 @@ var server = require('arangojs')({ url: 'root@127.0.0.1:8529' });
 var util = require('arango-util');
 
 server.useDatabase('db');
+var collection = server.collection('myCollection');
 
-util.collectionExists({ server, name: 'myCollection' })
+util.collectionExists(collection)
     .then(function (exists) {
         console.log('Collection exists?: ', exists);
     });
@@ -45,10 +45,9 @@ Verify if a collection exists.
 If the collection does not exists, it will be created.
 If the collection exists, it does nothing.
 
-#### options
+#### arguments
 
-- server: arangojs database object
-- name: name of the collection
+- collection: arangojs collection object
 
 #### returns
 A promise containing true if the collection has been created, otherwise false.
@@ -61,7 +60,9 @@ var util = require('arango-util');
 
 server.useDatabase('db');
 
-util.ensureCollectionExists({ server, name: 'myCollection' })
+var collection = server.collection('myCollection');
+
+util.ensureCollectionExists(collection)
     .then(function (created) {
         console.log('Does the collection have been created?: ', created);
     });
@@ -72,9 +73,8 @@ Gets a document by key in a specified collection.
 If the document is found, it is returned otherwise, null.
 
 #### options
-- collection: Can be either a string or an arangojs collection object. Note: when a string is used, you need to also specify a server object.
+- collection: an arangojs collection object.
 - key: the key of the document.
-- server: arangojs database object. Note: when used, you need to specify a colletion name argument.
 
 #### returns
 A promise containing the document or null if the document is not found.
@@ -85,15 +85,10 @@ A promise containing the document or null if the document is not found.
 var server = require('arangojs')({ url: 'root@127.0.0.1:8529' });
 var util = require('arango-util');
 
-// using the server and collection name
-util.getByKey({ server, collection: 'users', key: 'user1' })
-    .then(function (user) {
-        // if user is found or null.
-    });
+server.useDatabase('db');
 
 var collection = server.collection('users');
 
-// using only the collection
 util.getByKey({ collection, key: 'user1' })
     .then(function (user) {
         // if user is found or null.
@@ -105,9 +100,8 @@ Removes a document by key from a specified collection.
 If the document is found, it returns true, otherwise, false.
 
 #### options
-- collection: Can be either a string of an arangojs collection object. Note: when a string is used, you must provide an arango server object.
+- collection: an arangojs collection object.
 - key: the key of the document.
-- server: arangojs database object. NOte: when used, you need to specifiy a collection name argument.
 
 #### returns
 A promise containing true if the document have been removed or false if the document already does not exists.
@@ -118,14 +112,10 @@ A promise containing true if the document have been removed or false if the docu
 var server = require('arangojs')({ url: 'root@127.0.0.1:8529' });
 var util = require('arango-util');
 
-// using the server and collection name
-util.removeByKey({ server, collection: 'users', key: 'user1' })
-    .then(function (found) {
-    });
+server.useDatabase('db');
 
 var collection = server.collection('users');
 
-// using only the collection
 util.removeByKey({ collection, key: 'user1' })
     .then(function (found) {
     });
@@ -139,10 +129,9 @@ util.removeByKey({ collection, key: 'user1' })
 ### databaseExists
 Verify if a database exists.
 
-#### options
+#### arguments
 
-- server: arangojs object
-- name: name of the database
+- database: an arangojs database object
 
 #### returns
 A promise containing true if the database exists, otherwise false.
@@ -153,9 +142,36 @@ A promise containing true if the database exists, otherwise false.
 var server = require('arangojs')({ url: 'root@127.0.0.1:8529' });
 var util = require('arango-util');
 
-util.databaseExists({ server, name: 'db' })
+server.useDatabase('db');
+
+util.databaseExists(server)
     .then(function (exists) {
         console.log('Database exists?: ', exists);
+    });
+```
+
+### dropDatabase
+Attempt to remove a database and returns true if the database have been removed, 
+otherwise false.
+
+#### arguments
+
+- database: an arangojs database object
+
+#### returns
+A promise containing true if the database have been removed, otherwise false.
+
+#### example
+
+```js
+var server = require('arangojs')({ url: 'root@127.0.0.1:8529' });
+var util = require('arango-util');
+
+server.useDatabase('db');
+
+util.dropDatabase(server)
+    .then(function (exists) {
+        console.log('Database removed?: ', exists);
     });
 ```
 
@@ -164,10 +180,9 @@ Verify if a database exists.
 If the database does not exists, it will be created.
 If the database exists, it does nothing.
 
-#### options
+#### arguments
 
-- server: arangojs object
-- name: name of the database
+- database: an arangojs database object
 
 #### returns
 A promise containing true if the database has been created, otherwise false.
@@ -178,7 +193,9 @@ A promise containing true if the database has been created, otherwise false.
 var server = require('arangojs')({ url: 'root@127.0.0.1:8529' });
 var util = require('arango-util');
 
-util.ensureDatabaseExists({ server, name: 'db' })
+server.useDatabase('db');
+
+util.ensureDatabaseExists(server)
     .then(function (created) {
         console.log('Does the database have been created?: ', created);
     });

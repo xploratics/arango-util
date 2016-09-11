@@ -1,124 +1,149 @@
 var assert = require('assert');
 var debug = require('debug')('arango-util');
-var Promise = require('bluebird');
 
-exports.collectionExists = function (options) {
-    var name = options && options.name;
-    var server = options && options.server;
+exports.collectionExists = function (collection) {
+    debug(`checking if collection '${collection.name}' exists.`);
+    
+    return collection.get().then(ok, error);
 
-    assert.ok(name, 'name of collection should be defined.');
-    assert.ok(server, 'server should be an arangodb database');
-    debug(`checking if collection '${name}' exists`);
+    function ok() {
+        debug(`collection '${collection.name}' exists.`);
+        return true;
+    }
 
-    return server
-        .collections()
-        .then(collections => collections.some(c => c.name === name))
-        .then(function (exists) {
-            debug(`collection '${name}'${exists ? '' : ' does not'} exists`);
-            return exists;
-        });
+    function error(err) {
+        if (err.errorNum === 1203) {
+            debug(`collection '${collection.name}' does not exists.`);
+            return false;
+        }
+        return Promise.reject(err);
+    }
 };
 
-exports.databaseExists = function (options) {
-    var name = options && options.name;
-    var server = options && options.server;
+exports.databaseExists = function (database) {
+    debug(`checking if database '${database.name}' exists.`);
+    
+    return database.get().then(ok, error);
 
-    assert.ok(name, 'name of database should be defined.');
-    assert.ok(server, 'server should be an arangodb database');
-    debug(`checking if database '${name}' exists`);
+    function ok() {
+        debug(`database '${database.name}' exists.`);
+        return true;
+    }
 
-    return server
-        .listDatabases()
-        .then(list => list.indexOf(name) > -1)
-        .then(function (exists) {
-            debug(`database '${name}'${exists ? '' : ' does not'} exists`);
-            return exists;
-        });
+    function error(err) {
+        if (err.errorNum === 1228) {
+            debug(`database '${database.name}' does not exists.`);
+            return false;
+        }
+        return Promise.reject(err);
+    }
 };
 
-exports.ensureCollectionExists = options => exports
-    .collectionExists(options)
-    .then(function (exists) {
-        if (exists)
+exports.dropCollection = function (collection) {
+    var name = collection.name;
+    debug(`attempting to remove collection '${name}'.`);
+
+    return collection.drop().then(ok, error);
+
+    function ok() {
+        debug(`collection '${name}' has been removed.`);
+        return true;
+    }
+
+    function error(err) {
+        if (err.errorNum === 1203) {
+            debug(`collection '${name}' do not exists.`);
             return false;
+        }
 
-        debug(`creating collection '${options.name}'`);
+        debug(`error while removing collection '${name}'.`);
+        return Promise.reject(err);
+    }
+};
 
-        return options.server
-            .collection(options.name)
-            .create()
-            .then(function () {
-                debug(`collection '${options.name}' created.`);
-                return true;
-            });
-    });
+exports.ensureCollectionExists = function (collection) {
+    var name = collection.name;
+    debug(`attempting to create collection '${name}'.`);
 
-exports.ensureDatabaseExists = options => exports
-    .databaseExists(options)
-    .then(function (exists) {
-        if (exists)
+    return collection.create().then(ok, error);
+
+    function ok() {
+        debug(`collection '${name}' has been created.`);
+        return true;
+    }
+
+    function error(err) {
+        if (err.errorNum === 1207) {
+            debug(`collection '${name}' already exists.`);
             return false;
+        }
 
-        debug(`creating database '${options.name}'`);
+        debug(`error while creating collection '${name}'.`);
+        return Promise.reject(err);
+    }
+};
 
-        return options.server
-            .createDatabase(options.name)
-            .then(function () {
-                debug(`database '${options.name}' created.`);
-                return true;
-            });
-    })
-    .then(function (v) {
-        options.server.useDatabase(options.name);
-        return v;
-    });
+exports.ensureDatabaseExists = function (database) {
+    var name = database.name;
+    database.useDatabase('_system');
+
+    debug(`attempting to create database '${name}'.`);
+
+    return database.createDatabase(name).then(ok, error);
+
+    function ok() {
+        debug(`database '${name}' has been created.`);
+        database.useDatabase(name);
+        return true;
+    }
+
+    function error(err) {
+        database.useDatabase(name);
+
+        if (err.errorNum === 1207) {
+            debug(`database '${name}' already exists.`);
+            return false;
+        }
+
+        debug(`error while creating database '${name}'.`);
+        return Promise.reject(err);
+    }
+};
 
 exports.getByKey = function (options) {
-    if (!options) options = {};
+    assert.ok(options, 'options should be specified');
     
     var collection = options.collection;
     var key = options.key;
-    var server = options.server;
 
-    if (typeof collection === 'string') {
-        assert.ok(server, 'server should be specified when using a collection');
-        collection = server.collection(collection);
-    } else
-        assert.ok(collection, 'collection should be specified');
-
+    assert.ok(collection, 'collection should be specified');
     debug(`fetching document '${key}' from '${collection.name}'`);
 
-    return collection.document(key).then(documentFound, handleError);
+    return collection.document(key).then(ok, error);
 
-    function documentFound(e) {
+    function ok(e) {
         debug(`found document ${key}`);
         return e;
     }
 
-    function handleError(e) {
+    function error(e) {
         if (e.errorNum === 1202) {
             debug(`document '${key}' not found.`);
             return null;
         } else
-            debug(`error fetching document '${key}' from '${collection.name}'\n${e.toString()}`);
+            debug(`error fetching document '${key}' from '${collection.name}'`);
         
         return Promise.reject(e);
     }
 };
 
 exports.removeByKey = function (options) {
-    if (!options) options = {};
+    assert.ok(options, 'options should be specified');
     
     var collection = options.collection;
     var key = options.key;
-    var server = options.server;
 
-    if (typeof collection === 'string') {
-        assert.ok(server, 'server should be specified when using a collection');
-        collection = server.collection(collection);
-    } else
-        assert.ok(collection, 'collection should be specified');
-
+    assert.ok(collection, 'collection should be specified');
     debug(`removing document '${key}' from '${collection.name}'`);
 
     return collection.remove(key).then(documentRemoved, handleError);
