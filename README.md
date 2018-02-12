@@ -139,10 +139,10 @@ A promise containing true if the database exists, otherwise false.
 #### example
 
 ```js
-var server = require('arangojs')({ url: 'root@127.0.0.1:8529' });
+var server = require('arangojs')({ url: 'http://localhost:8529' });
 var util = require('arango-util');
 
-server.useDatabase('db');
+server.useDatabase('db').useBasicAuth('root', '');
 
 util.databaseExists(server)
     .then(function (exists) {
